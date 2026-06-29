@@ -1,0 +1,12 @@
+node_modules/
+.next/
+.vercel/
+.wm-data/
+public/contact_sheet.html
+
+.env
+.env.*
+!.env.example
+
+*.tsbuildinfo
+.DS_Store

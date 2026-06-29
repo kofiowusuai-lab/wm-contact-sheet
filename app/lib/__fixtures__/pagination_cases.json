@@ -1,0 +1,159 @@
+{
+  "cases": [
+    {
+      "name": "empty narration",
+      "narration": "",
+      "words": null,
+      "segStart": 0,
+      "segEnd": 3,
+      "opts": { "maxLines": 2, "maxCharsPerLine": 38 },
+      "expected": []
+    },
+    {
+      "name": "whitespace-only narration",
+      "narration": "   \t  ",
+      "words": null,
+      "segStart": 0,
+      "segEnd": 3,
+      "opts": { "maxLines": 2, "maxCharsPerLine": 38 },
+      "expected": []
+    },
+    {
+      "name": "single short narration fits one page",
+      "narration": "Hello world",
+      "words": null,
+      "segStart": 1.0,
+      "segEnd": 3.0,
+      "opts": { "maxLines": 2, "maxCharsPerLine": 38 },
+      "expected": [
+        { "lines": ["Hello world"], "start": 1.0, "end": 3.0 }
+      ]
+    },
+    {
+      "name": "narration exactly fills two lines, no second page",
+      "narration": "this is a tightly packed first line and a packed second one too",
+      "words": null,
+      "segStart": 0.0,
+      "segEnd": 4.0,
+      "opts": { "maxLines": 2, "maxCharsPerLine": 38 },
+      "expected": [
+        {
+          "lines": [
+            "this is a tightly packed first line",
+            "and a packed second one too"
+          ],
+          "start": 0.0,
+          "end": 4.0
+        }
+      ]
+    },
+    {
+      "name": "single word longer than maxCharsPerLine gets its own line",
+      "narration": "supercalifragilisticexpialidocious dance",
+      "words": null,
+      "segStart": 0.0,
+      "segEnd": 2.0,
+      "opts": { "maxLines": 2, "maxCharsPerLine": 16 },
+      "expected": [
+        {
+          "lines": ["supercalifragilisticexpialidocious", "dance"],
+          "start": 0.0,
+          "end": 2.0
+        }
+      ]
+    },
+    {
+      "name": "long narration paginates by character weight, no word timings",
+      "narration": "alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november oscar papa quebec",
+      "words": null,
+      "segStart": 0.0,
+      "segEnd": 10.0,
+      "opts": { "maxLines": 2, "maxCharsPerLine": 30, "minPageDurationSec": 0 },
+      "expected": [
+        {
+          "lines": ["alpha bravo charlie delta echo", "foxtrot golf hotel india"],
+          "start": 0.0,
+          "end": 5.288461538461538
+        },
+        {
+          "lines": ["juliet kilo lima mike november", "oscar papa quebec"],
+          "start": 5.288461538461538,
+          "end": 10.0
+        }
+      ]
+    },
+    {
+      "name": "page timing from 1:1 word timings",
+      "narration": "one two three four five six seven eight",
+      "words": [
+        { "word": "one",   "start": 0.0, "end": 0.5 },
+        { "word": "two",   "start": 0.5, "end": 1.0 },
+        { "word": "three", "start": 1.0, "end": 1.5 },
+        { "word": "four",  "start": 1.5, "end": 2.0 },
+        { "word": "five",  "start": 2.0, "end": 2.5 },
+        { "word": "six",   "start": 2.5, "end": 3.0 },
+        { "word": "seven", "start": 3.0, "end": 3.5 },
+        { "word": "eight", "start": 3.5, "end": 4.0 }
+      ],
+      "segStart": 0.0,
+      "segEnd": 4.0,
+      "opts": { "maxLines": 1, "maxCharsPerLine": 14, "minPageDurationSec": 0 },
+      "expected": [
+        { "lines": ["one two three"], "start": 0.0, "end": 1.5 },
+        { "lines": ["four five six"],  "start": 1.5, "end": 3.0 },
+        { "lines": ["seven eight"],    "start": 3.0, "end": 4.0 }
+      ]
+    },
+    {
+      "name": "runt page merges into previous",
+      "narration": "alpha bravo charlie delta echo foxtrot golf",
+      "words": [
+        { "word": "alpha",   "start": 0.0, "end": 1.0 },
+        { "word": "bravo",   "start": 1.0, "end": 2.0 },
+        { "word": "charlie", "start": 2.0, "end": 3.0 },
+        { "word": "delta",   "start": 3.0, "end": 4.0 },
+        { "word": "echo",    "start": 4.0, "end": 4.6 },
+        { "word": "foxtrot", "start": 4.6, "end": 4.9 },
+        { "word": "golf",    "start": 4.9, "end": 5.0 }
+      ],
+      "segStart": 0.0,
+      "segEnd": 5.0,
+      "opts": { "maxLines": 1, "maxCharsPerLine": 18, "minPageDurationSec": 0.6 },
+      "expected": [
+        { "lines": ["alpha bravo"],                              "start": 0.0, "end": 2.0 },
+        { "lines": ["charlie delta echo", "foxtrot golf"],       "start": 2.0, "end": 5.0 }
+      ]
+    },
+    {
+      "name": "maxLines=3 produces three-line pages",
+      "narration": "alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo",
+      "words": null,
+      "segStart": 0.0,
+      "segEnd": 6.0,
+      "opts": { "maxLines": 3, "maxCharsPerLine": 16, "minPageDurationSec": 0 },
+      "expected": [
+        {
+          "lines": ["alpha bravo", "charlie delta", "echo foxtrot"],
+          "start": 0.0,
+          "end": 3.4029850746268657
+        },
+        {
+          "lines": ["golf hotel india", "juliet kilo"],
+          "start": 3.4029850746268657,
+          "end": 6.0
+        }
+      ]
+    },
+    {
+      "name": "clamps maxLines/maxCharsPerLine to safe ranges",
+      "narration": "alpha bravo charlie",
+      "words": null,
+      "segStart": 0.0,
+      "segEnd": 3.0,
+      "opts": { "maxLines": 99, "maxCharsPerLine": 999, "minPageDurationSec": 0 },
+      "expected": [
+        { "lines": ["alpha bravo charlie"], "start": 0.0, "end": 3.0 }
+      ]
+    }
+  ]
+}
