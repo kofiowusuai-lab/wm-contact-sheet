@@ -90,3 +90,60 @@ The production Vercel project is `wm-contact-sheet` in the `kofi-sketchs-project
 - When changing auth behavior, verify both `https://wm-contact-sheet.vercel.app/` and unauthenticated hosted API access.
 - For cloned-agent use, prefer `npm run harness`.
 - Use `npm run build` before deployment.
+
+## Requirements and configuration reference
+
+Use a current Node.js/npm runtime compatible with Next.js 14. No Node engine range is declared in `package.json`. `npm ci` installs the committed dependency lockfile. The local shell and project storage run without Supabase; generation, voice, QA, music, and remote finishing features require their own configured providers/services.
+
+| Names | Used for |
+|---|---|
+| `WM_STORAGE`, `WM_DATA_DIR` | Storage mode (`local` or `supabase`) and local data location |
+| `PORT`, `WM_NO_OPEN` | Harness preferred port; set `WM_NO_OPEN=1` to skip browser launch |
+| `FAL_KEY`, `ELEVENLABS_API_KEY`, `GEMINI_API_KEY` | Required first-run setup fields for generation, voice, and QA |
+| `WM_TUNNEL_URL` | Optional service URL saved by local setup |
+| `OPENAI_API_KEY`, `FAL_ADMIN_KEY`, `JAMENDO_CLIENT_ID` | Feature-specific provider integrations |
+| `ELEVENLABS_API_KEY_FALLBACK`, `ELEVENLABS_API_KEY_FALLBACK_2`, `ELEVENLABS_API_KEY_FALLBACK_3` | Optional additional voice provider keys |
+| `SUPABASE_URL`, `SUPABASE_BUCKET`, `SUPABASE_SERVICE_ROLE_KEY` | Optional cloud storage configuration |
+| `BASIC_AUTH_USERNAME`, `BASIC_AUTH_PASSWORD` | API authentication for production/private deployments |
+
+Treat `.env.example` as a list of names and placeholders, not working credentials. Copying it verbatim also sets a placeholder Basic Auth password, which can cause local API requests to return 401. For the local harness, omit the Basic Auth variables unless you intentionally configure authentication. Supply only the provider variables needed by the features you use.
+
+The setup endpoint accepts keys only on local development hosts, writes a managed block to `.env.local`, and sets local storage mode. It is disabled in production. The harness binds to `127.0.0.1` and searches up to 50 ports beginning at `PORT` or 3000.
+
+## Workflow and source layout
+
+1. Start your own local harness and complete local setup.
+2. Create or select a project; import script/prompts and review segmented rows.
+3. Add or generate frames, adjust aspect ratio/captions, and review QA results.
+4. Configure authorized voices and audio/music as needed.
+5. Preview the contact sheet and use available render/upload handoffs only after configuring the appropriate local/tunnel service.
+
+The app includes controls for rendering, upload, analytics, and YouTube operations, but the repository's Next.js process alone is not a replacement for every external service used by these controls.
+
+- [app/page.tsx](app/page.tsx): main workflow and state coordination.
+- `app/components/`: contact sheet, frame/caption editors, voice/music controls, previews, and handoff dialogs.
+- `app/lib/`: script/segment parsing, image transformations, caption styling/pagination, provider helpers, and storage.
+- [app/lib/blob.ts](app/lib/blob.ts): local filesystem and cloud storage abstraction.
+- `app/api/`: project/media/provider endpoints and local setup/upload/file routes.
+- [middleware.ts](middleware.ts): API Basic Auth; non-API app shell remains public.
+- [scripts/harness.mjs](scripts/harness.mjs): local dependency install, port selection, startup, and browser launch.
+
+Local state is stored in `.wm-data/projects/<project_id>/`, `.wm-data/series/`, and `.wm-data/global/`. It includes project JSON and generated/uploaded media. Changing `WM_DATA_DIR` changes the storage root; back up your own data before moving it. Keep `.wm-data/` and private environment files out of version control.
+
+## Verification and troubleshooting
+
+```bash
+npm ci
+npm run build
+npm start
+```
+
+`build` is the configured production compilation check. `start` serves that build and uses production API authentication rules; configure your own Basic Auth values before using protected APIs. There is no automated `test` or `lint` npm script. A build does not validate live provider generation, remote tunnel services, or uploads; test those manually with your own account and project.
+
+If the browser does not open, use the localhost URL printed by the harness or set `WM_NO_OPEN=1`. For 401 responses, check authentication and whether you started a production build. For missing projects, verify storage mode and data directory. For setup 403 responses, use `localhost`/`127.0.0.1` in development. For stalled finishing or uploads, verify the tunnel service independently. Provider errors require checking keys, permissions, quotas, and supported inputs; repeated clicks may create billable work.
+
+Deployment commands above are for an owner-controlled deployment with private configuration. Cloners should use their own hosting scope, backend, credentials, and data rather than the named maintainer deployment.
+
+## Licensing
+
+This repository does not include a top-level license file. Confirm reuse terms with the owner; dependencies and any bundled media retain their own licenses.
